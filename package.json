@@ -1,0 +1,21 @@
+{
+  "name": "uac-commandhub",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build-script": "cd src/public && bun build script.ts --outdir ../../public"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/express": "^4.17.21",
+    "chalk": "^5.3.0",
+    "express": "^4.18.3",
+    "tree-kill": "^1.2.2",
+    "zod": "^3.22.4"
+  }
+}

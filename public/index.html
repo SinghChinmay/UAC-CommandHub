@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet" />
+
+        <meta charset="UTF-8" />
+        <title>UAC Command Hub</title>
+
+        <script src="./script.js"></script>
+
+        <style>
+            body {
+                background-color: #111; /* Dark background */
+                color: #fff; /* Light text */
+                font-family: 'Fira Code', monospace;
+                font-style: bold;
+                line-height: 1.3;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            table {
+                width: 70%; /* Reduce the width to 80% */
+                margin: 0 auto; /* Center the table horizontally */
+                border-collapse: collapse;
+            }
+            th,
+            td {
+                padding: 10px;
+                border: 1px solid #333; /* Subtle borders for readability */
+                text-align: left;
+            }
+            th {
+                background-color: #222; /* Slightly lighter header background for contrast */
+            }
+            .running {
+                background-color: #009900; /* Neon green for running services */
+            }
+            a {
+                color: #00ffff; /* Cyan, common in cyberpunk color palettes */
+                text-decoration: none;
+            }
+            a:hover {
+                color: #ff00ff; /* Magenta for hover state */
+                text-shadow: 0 0 10px #ff00ff;
+                transition: color 0.1s;
+            }
+
+            a:hover > * {
+                background-color: #009900; /* Green background for parent element */
+            }
+            #kill-all-btn {
+                /* Your existing styles */
+                background-color: #ff2052;
+                color: #fff;
+                border: none;
+                padding: 10px 20px;
+                margin: 20px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            #kill-all-btn:hover {
+                background-color: #ff4092; /* Lighter pink on hover */
+            }
+            #start-all-btn {
+                /* Your existing styles */
+                background-color: #00cc66; /* Slightly greener color */
+                color: #fff;
+                border: none;
+                padding: 10px 20px;
+                margin: 20px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            #start-all-btn:hover {
+                background-color: #00ff99; /* Lighter green on hover */
+                text-shadow: 0 0 10px #00ff99;
+                text-decoration-color: #111;
+                transition: color 0.1s;
+            }
+            /* make serviceForm vertical */
+            #serviceForm,
+            #saveConfigForm {
+                align-items: normal;
+                align-content: center;
+                border: 1px solid #333;
+                padding: 20px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                margin: 20px 0;
+            }
+            #serviceFormContainer {
+                width: 70%;
+                margin: 0 auto;
+            }
+
+            #serviceForm button {
+                margin-top: 20px;
+                padding: 10px 20px;
+                background-color: #333;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            #serviceForm button:hover {
+                background-color: #555;
+            }
+
+            #serviceForm > * {
+                flex-basis: calc(50% - 10px);
+                margin-bottom: 20px;
+            }
+
+            .configButton,
+            #configSource {
+                background-color: #222; /* Darker background for buttons */
+                color: #00cc66; /* Neon green text */
+                border: 1px solid #333; /* Subtle border */
+                padding: 10px 20px;
+                margin: 10px;
+                cursor: pointer;
+                transition: background-color 0.3s, color 0.3s;
+                font-family: 'Fira Code', monospace;
+                font-size: 16px;
+                text-transform: uppercase;
+                box-shadow: none; /* Remove the box shadow for a flatter look */
+                border-radius: 4px; /* Slight rounding of corners */
+            }
+
+            .configButton:hover,
+            #configSource:hover {
+                background-color: #333; /* Dark hover effect */
+                color: #00ff99; /* Brighter green text on hover */
+            }
+
+            /* Text input for configuration name */
+            #configName {
+                width: calc(100% - 40px); /* Full width with padding accounted for */
+                padding: 10px 20px;
+                margin: 10px;
+                border: 1px solid #333;
+                background-color: #fff; /* White background */
+                color: #000; /* Black text */
+                border-radius: 4px;
+            }
+
+            #configName:hover {
+                border-color: #444; /* Slightly lighter border on hover */
+            }
+
+            /* Dropdown styling */
+            #configSource {
+                width: calc(100% - 40px); /* Full width with padding accounted for */
+                padding: 10px 20px;
+                margin: 10px;
+                border: 1px solid #333;
+                background-color: #fff; /* White background */
+                color: #000; /* Black text */
+                border-radius: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Start</th>
+                    <th>Stop</th>
+                    <th>Restart</th>
+                </tr>
+            </thead>
+            <tbody id="services-list">
+                <!-- Services will be loaded here by JavaScript -->
+            </tbody>
+        </table>
+        <div style="text-align: center">
+            <div style="display: flex; justify-content: center">
+                <button id="kill-all-btn">Kill All Services</button>
+                <button id="start-all-btn">Start All Services</button>
+            </div>
+        </div>
+        <!-- Service Details Form -->
+
+        <div id="serviceFormContainer">
+            <form id="serviceForm">
+                <p>Name:</p>
+                <input type="text" id="serviceName" placeholder="Service Name" required />
+                <p>Command:</p>
+                <input type="text" id="serviceCommand" placeholder="Command" required />
+                <p>Arguments:</p>
+                <input type="text" id="serviceArgs" placeholder="Arguments (comma-separated)" />
+                <p>Directory:</p>
+                <input type="text" id="serviceCwd" placeholder="Working Directory" required />
+                <button id="add-service-btn">Add Service</button>
+            </form>
+        </div>
+
+        <div id="serviceFormContainer">
+            <!-- Buttons for Loading and Saving Config -->
+            <button id="saveConfig" class="configButton">Save Config</button>
+            <button id="loadConfig" class="configButton">Load Config</button>
+            <!-- Dropdown for Loading and Saving Config -->
+            <select id="configSource">
+                <option value="local">Local</option>
+            </select>
+
+            <!-- save as config -->
+            <form id="saveConfigForm">
+                <input type="text" id="configName" placeholder="Config Name" required />
+                <button type="submit" class="configButton">Add New Config Name</button>
+            </form>
+        </div>
+    </body>
+</html>
