@@ -65,7 +65,13 @@ function killAllServices() {
 }
 
 function startAllServices() {
-    fetch('/start-all', { method: 'POST', body: JSON.stringify(services) })
+    fetch('/start-all', {
+        method: 'POST',
+        body: JSON.stringify([...services]),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
         .then((response) => response.text())
         .then((data) => console.log(`Response: ${data}`))
         .catch((error) => console.error('Error starting all services:', error));

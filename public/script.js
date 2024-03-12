@@ -31,7 +31,13 @@ var killAllServices = function() {
   fetch("/kill-all", { method: "POST" }).then((response) => response.text()).then((data) => console.log(`Response: ${data}`)).catch((error) => console.error("Error killing all services:", error));
 };
 var startAllServices = function() {
-  fetch("/start-all", { method: "POST", body: JSON.stringify(services) }).then((response) => response.text()).then((data) => console.log(`Response: ${data}`)).catch((error) => console.error("Error starting all services:", error));
+  fetch("/start-all", {
+    method: "POST",
+    body: JSON.stringify([...services]),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }).then((response) => response.text()).then((data) => console.log(`Response: ${data}`)).catch((error) => console.error("Error starting all services:", error));
 };
 var addService = function() {
   const serviceNameInput = document.getElementById("serviceName");

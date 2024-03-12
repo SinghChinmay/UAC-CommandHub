@@ -23,6 +23,12 @@ app.post('/:action', async (req, res) => {
     try {
         const action = zAction.parse(req.params.action);
 
+        if (action === 'kill-all') {
+            await killAllServices();
+            res.json({ message: 'Killed all services' });
+            return;
+        }
+
         if (action === 'list') {
             res.json({ services: getProcessTableServices() });
             return;
@@ -49,10 +55,7 @@ app.post('/:action', async (req, res) => {
                 await restartService(body);
                 res.json({ message: `Restarted ${body.service}` });
                 return;
-            case 'kill-all':
-                await killAllServices();
-                res.json({ message: 'Killed all services' });
-                return;
+
             default:
                 res.status(400).json({ message: `Invalid action: ${action}` });
                 return;
