@@ -33,16 +33,10 @@ async function killAllServices() {
 
     for (const entry of processTable) {
         try {
-            console.log(`Killing command ${chalk.green.bold(entry.service)}`);
-            spawn(`kill -9 ${entry.process.pid}`, {
-                shell: true,
-                stdio: 'inherit',
-            });
+            await killService(entry.service);
         } catch (error) {
             console.error(`Failed to kill ${entry.service}:`, error);
         }
-
-        await wait(200);
     }
 }
 
