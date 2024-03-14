@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import z from 'zod';
 import { getProcessTableServices } from './src/pidTable';
+import { readAndSendJson, writeJson } from './src/readAndWrite';
 import { killAllServices, killService, restartService, startAllServices, startService } from './src/util';
 
 const app = express();
@@ -17,6 +18,64 @@ const zbody = z.object({
 const zAction = z.enum(['start', 'restart', 'kill-all', 'start-all', 'stop', 'list']);
 
 app.use(express.json());
+
+app.get('/load-config-names', async (req, res) => {
+    const data = await readAndSendJson();
+
+    const configNames = data.map((d) => d.configName);
+
+    res.json({ configNames });
+});
+
+app.post(`/save-config-name`, async (req, res) => {
+    const data = await readAndSendJson();
+    const configName = req.body.configName;
+
+    if (!configName) {
+        res.status(400).json({ message: 'Config name is required' });
+        return;
+    }
+
+    if (data.some((d) => d.configName === configName)) {
+        res.status(400).json({ message: 'Config name already exists' });
+        return;
+    }
+
+    data.push({
+        services: [],
+        configName,
+    });
+    await writeJson(data);
+    res.json({ message: 'Saved config name' });
+});
+
+app.get('/load-config/:configName', async (req, res) => {
+    const data = await readAndSendJson();
+    const configName = req.params.configName;
+    const config = data.find((d) => d.configName === configName);
+
+    console.log({ config });
+    if (!config) {
+        res.status(404).json({ message: 'Config not found' });
+        return;
+    }
+
+    res.json(config.services);
+});
+
+app.post('/save-config/', async (req, res) => {
+    const data = await readAndSendJson();
+    const configName = req.body.configName;
+    const config = data.find((d) => d.configName === configName);
+    if (!config) {
+        res.status(404).json({ message: 'Config not found' });
+        return;
+    }
+
+    config.services = req.body.services;
+    await writeJson(data);
+    res.json({ message: 'Saved config' });
+});
 
 // requestSchema validates the request body
 app.post('/:action', async (req, res) => {
