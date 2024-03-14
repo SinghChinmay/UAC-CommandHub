@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { spawn } from 'child_process';
 import kill from 'tree-kill';
 import * as P from './pidTable';
+import { WorkingDirectory } from './readAndWrite';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function listRunningServices() {
@@ -10,6 +11,10 @@ async function listRunningServices() {
 }
 
 async function startService(options: { service: string; cwd: string; command: string; args: string[] }) {
+    if (options.cwd === '') {
+        options.cwd = WorkingDirectory;
+    }
+
     if (P.getProcessFromTable(options.service)) {
         console.log(`Service ${options.service} is already running.`);
         return;

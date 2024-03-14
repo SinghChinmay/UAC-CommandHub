@@ -1,8 +1,8 @@
-const filePath = process.cwd();
+export const WorkingDirectory = process.cwd();
 
 export async function readAndSendJson() {
     try {
-        const services = await Bun.file(filePath + '/.temp.json', { type: 'application/json' }).json();
+        const services = await Bun.file(WorkingDirectory + '/.temp.json', { type: 'application/json' }).json();
         return services as {
             services: {
                 service: string;
@@ -13,14 +13,14 @@ export async function readAndSendJson() {
             configName: string;
         }[];
     } catch (error) {
-        const createFile = Bun.write(filePath + '/.temp.json', '[]');
+        const createFile = Bun.write(WorkingDirectory + '/.temp.json', '[]');
         return [];
     }
 }
 
 export async function writeJson(data: any) {
     try {
-        const write = Bun.write(filePath + '/.temp.json', JSON.stringify(data));
+        const write = Bun.write(WorkingDirectory + '/.temp.json', JSON.stringify(data));
         return true;
     } catch (error) {
         return false;
