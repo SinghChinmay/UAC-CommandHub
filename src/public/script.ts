@@ -77,7 +77,8 @@ function startAllServices() {
         .catch((error) => console.error('Error starting all services:', error));
 }
 
-function addService() {
+function addService(e: Event) {
+    e.preventDefault();
     // Get form values
     const serviceNameInput = document.getElementById('serviceName') as HTMLInputElement;
     const serviceCommandInput = document.getElementById('serviceCommand') as HTMLInputElement;
@@ -139,12 +140,103 @@ function clearTable() {
     }
 }
 
+function saveConfigFn(e: Event) {
+    e.preventDefault();
+
+    const configSource = document.getElementById('configSource') as HTMLSelectElement;
+
+    fetch('/save-config', {
+        method: 'POST',
+        body: JSON.stringify({ services: [...services], configName: configSource.value }),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then((response) => response.text())
+        .then((data) => console.log(`Response: ${data}`))
+        .catch((error) => console.error('Error saving config:', error));
+}
+
+function loadConfigFn(e: Event) {
+    e.preventDefault();
+
+    const configSource = document.getElementById('configSource') as HTMLSelectElement;
+
+    fetch(`/load-config/${configSource.value}`)
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.length === 0) {
+                throw 'No data';
+            }
+
+            services.clear();
+            data.forEach((service: { service: string; command: string; args: string[]; cwd: string }) =>
+                services.add(service),
+            );
+            clearTable();
+            init();
+        })
+        .catch((error) => console.error('Error loading config:', error));
+}
+
+function saveConfigNameFn(e: Event) {
+    e.preventDefault();
+
+    const saveConfigName = document.getElementById('configName') as HTMLInputElement;
+
+    fetch('/save-config-name', {
+        method: 'POST',
+        body: JSON.stringify({ configName: saveConfigName.value }),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(async (response) => await response.text())
+        .then((data) => console.log(`Response: ${data}`))
+        .catch((error) => console.error('Error saving config name:', error));
+}
+
+function loadConfigNames() {
+    fetch('/load-config-names')
+        .then((response) => response.json())
+        .then((data) => {
+            const configSource = document.getElementById('configSource') as HTMLSelectElement;
+            configSource.innerHTML = '';
+
+            data.configNames.forEach((configName: string) => {
+                const option = document.createElement('option');
+                option.value = configName;
+                option.text = configName;
+                configSource.appendChild(option);
+            });
+
+            // console.log('Config names loaded:', data.configNames);
+        })
+        .catch((error) => console.error('Error loading config names:', error));
+}
+
 window.onload = () => {
     init();
 
     const killAllButton = document.getElementById('kill-all-btn');
     const startAllButton = document.getElementById('start-all-btn');
     const addServiceButton = document.getElementById('add-service-btn');
+
+    const saveConfig = document.getElementById('saveConfig');
+    const loadConfig = document.getElementById('loadConfig');
+    const saveConfigName = document.getElementById('saveConfigName');
+
+    if (saveConfigName) {
+        saveConfigName.onclick = saveConfigNameFn;
+    }
+
+    if (saveConfig) {
+        saveConfig.onclick = saveConfigFn;
+    }
+
+    if (loadConfig) {
+        loadConfig.onclick = loadConfigFn;
+    }
 
     if (addServiceButton) {
         addServiceButton.onclick = addService;
@@ -161,4 +253,5 @@ window.onload = () => {
     // Poll the service status every 3 seconds
     setInterval(updateServiceStatus, 3000);
     updateServiceStatus(); // Initial update on page load
+    loadConfigNames();
 };
