@@ -14,6 +14,9 @@ async function startService(options: { service: string; cwd: string; command: st
     if (options.cwd === '') {
         options.cwd = WorkingDirectory;
     }
+    if (options.cwd.startsWith('~')) {
+        options.cwd = options.cwd.replace('~', WorkingDirectory);
+    }
 
     if (P.getProcessFromTable(options.service)) {
         console.log(`Service ${options.service} is already running.`);
