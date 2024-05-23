@@ -66,6 +66,18 @@ async function killService(service: string) {
     await wait(200);
 }
 
+function killAllServicesForced() {
+    const processTable = P.getProcessTable();
+
+    for (const entry of processTable) {
+        kill(entry.process.pid as number, 'SIGKILL', (err) => {
+            if (err) {
+                console.error(`Failed to kill ${entry.service}:`, err);
+            }
+        });
+    }
+}
+
 async function restartService(options: { service: string; cwd: string; command: string; args: string[] }) {
     const process = P.getProcessFromTable(options.service);
     if (!process) {
@@ -115,6 +127,7 @@ async function startAllServices(
 
 export {
     killAllServices,
+    killAllServicesForced,
     killService,
     listRunningServices,
     restartAllServices,
