@@ -1,6 +1,8 @@
-import chalk from 'chalk';
 import { spawn } from 'child_process';
+
+import chalk from 'chalk';
 import kill from 'tree-kill';
+
 import * as P from './pidTable';
 import { WorkingDirectory } from './readAndWrite';
 
@@ -17,6 +19,8 @@ async function startService(options: { service: string; cwd: string; command: st
     if (options.cwd.startsWith('~')) {
         options.cwd = options.cwd.replace('~', WorkingDirectory);
     }
+
+    console.log(`🟢 => ${chalk.green.bold(options.service)}`);
 
     if (P.getProcessFromTable(options.service)) {
         console.log(`Service ${options.service} is already running.`);
@@ -55,7 +59,7 @@ async function killService(service: string) {
         return;
     }
 
-    console.log(`Killing command ${chalk.green.bold(service)}`);
+    console.log(`Killing command ${chalk.red.bold(service)}`);
 
     kill(process.pid as number, 'SIGKILL', (err) => {
         if (err) {
@@ -64,18 +68,6 @@ async function killService(service: string) {
     });
 
     await wait(200);
-}
-
-function killAllServicesForced() {
-    const processTable = P.getProcessTable();
-
-    for (const entry of processTable) {
-        kill(entry.process.pid as number, 'SIGKILL', (err) => {
-            if (err) {
-                console.error(`Failed to kill ${entry.service}:`, err);
-            }
-        });
-    }
 }
 
 async function restartService(options: { service: string; cwd: string; command: string; args: string[] }) {
@@ -125,9 +117,40 @@ async function startAllServices(
     console.log('All services started 🚀🚀🚀');
 }
 
+async function handleExit(signal: string) {
+    console.log(`  🔴 Received ${signal}, shutting down. 🛑🛑🛑`);
+    await killAllServices();
+    process.exit(0);
+}
+
+process.on('SIGINT', async () => {
+    await handleExit('SIGINT');
+});
+process.on('SIGBREAK', async () => {
+    await handleExit('SIGBREAK');
+});
+process.on('SIGTERM', async () => {
+    await handleExit('SIGTERM');
+});
+process.on('SIGHUP', async () => {
+    await handleExit('SIGHUP');
+});
+
+process.on('beforeExit', async () => {
+    await handleExit('beforeExit');
+});
+
+process.on('uncaughtException', async (error) => {
+    console.error('Uncaught Exception:', error);
+    await handleExit('uncaughtException');
+});
+process.on('unhandledRejection', async (reason) => {
+    console.error('Unhandled Rejection:', reason);
+    await handleExit('unhandledRejection');
+});
+
 export {
     killAllServices,
-    killAllServicesForced,
     killService,
     listRunningServices,
     restartAllServices,

@@ -3,14 +3,7 @@ import path from 'path';
 import z from 'zod';
 import { getProcessTableServices } from './src/pidTable';
 import { readAndSendJson, writeJson } from './src/readAndWrite';
-import {
-    killAllServices,
-    killAllServicesForced,
-    killService,
-    restartService,
-    startAllServices,
-    startService,
-} from './src/util';
+import { killAllServices, killService, restartService, startAllServices, startService } from './src/util';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -146,23 +139,3 @@ app.all('*', (req, res) => {
 app.listen(4000, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
-
-function handleExit(signal: string) {
-    console.log(`Received ${signal}, shutting down.`);
-    killAllServicesForced();
-}
-
-process.on('SIGINT', () => handleExit('SIGINT'));
-process.on('SIGBREAK', () => handleExit('SIGBREAK'));
-process.on('SIGTERM', () => handleExit('SIGTERM'));
-process.on('SIGHUP', () => handleExit('SIGHUP'));
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
-    handleExit('uncaughtException');
-});
-process.on('unhandledRejection', (reason) => {
-    console.error('Unhandled Rejection:', reason);
-    handleExit('unhandledRejection');
-});
-process.on('beforeExit', () => handleExit('beforeExit'));
-process.on('exit', () => handleExit('exit'));
